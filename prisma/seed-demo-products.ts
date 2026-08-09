@@ -10,10 +10,34 @@ import { slugify } from "../src/lib/slug";
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
 
+async function findOrCreateDemoSeller(shopName: string, email: string) {
+  const existing = await prisma.sellerProfile.findFirst({ where: { shopName } });
+  if (existing) return existing;
+
+  const user = await prisma.user.upsert({
+    where: { email },
+    update: {},
+    create: {
+      name: shopName,
+      email,
+      passwordHash: await bcrypt.hash("motdepasse123", 10),
+      role: "SELLER",
+    },
+  });
+
+  return prisma.sellerProfile.create({
+    data: {
+      userId: user.id,
+      shopName,
+      slug: slugify(shopName),
+      status: "APPROUVE",
+    },
+  });
+}
+
 async function main() {
-  const paul = await prisma.sellerProfile.findFirst({ where: { shopName: "Paul Électro" } });
-  const marie = await prisma.sellerProfile.findFirst({ where: { shopName: "Electro Marie" } });
-  if (!paul || !marie) throw new Error("Vendeurs de démo introuvables. Lancez d'abord seed.ts.");
+  const paul = await findOrCreateDemoSeller("Paul Électro", "paul.demo@example.com");
+  const marie = await findOrCreateDemoSeller("Electro Marie", "marie.demo@example.com");
 
   const categories = await prisma.category.findMany();
   const catBySlug = Object.fromEntries(categories.map((c) => [c.slug, c]));
@@ -43,6 +67,7 @@ async function main() {
       description: "Écran 6.5\" AMOLED, triple caméra 50MP, batterie 5000mAh.",
       specs: { "Stockage": "128 Go", "RAM": "4 Go", "Écran": "6.5 pouces AMOLED" },
       review: { rating: 5, comment: "Très bon téléphone, livraison rapide." },
+      image: "https://images.pexels.com/photos/818043/pexels-photo-818043.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       name: "Smartphone Redmi Note 13",
@@ -53,6 +78,7 @@ async function main() {
       description: "Performance solide, charge rapide 33W, écran 90Hz fluide.",
       specs: { "Stockage": "128 Go", "Charge": "33W" },
       review: null,
+      image: "https://images.pexels.com/photos/3945691/pexels-photo-3945691.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       name: "Écouteurs sans fil TWS Pro",
@@ -64,6 +90,7 @@ async function main() {
       description: "Réduction de bruit, autonomie 24h avec boîtier de charge.",
       specs: { "Autonomie": "24h", "Bluetooth": "5.3" },
       review: { rating: 4, comment: "Bon son, un peu serré aux oreilles au début." },
+      image: "https://images.pexels.com/photos/8858287/pexels-photo-8858287.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       name: "Enceinte Bluetooth portable",
@@ -74,6 +101,7 @@ async function main() {
       description: "Son puissant 360°, étanche IPX7, jusqu'à 12h d'autonomie.",
       specs: { "Étanchéité": "IPX7", "Autonomie": "12h" },
       review: { rating: 5, comment: "Excellente qualité sonore pour le prix." },
+      image: "https://images.pexels.com/photos/4917455/pexels-photo-4917455.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       name: "Ordinateur portable 15.6\" 8GB/256GB",
@@ -85,6 +113,7 @@ async function main() {
       description: "Processeur rapide, SSD 256GB, idéal pour le travail et les études.",
       specs: { "RAM": "8 Go", "Stockage": "256 Go SSD", "Écran": "15.6 pouces" },
       review: null,
+      image: "https://images.pexels.com/photos/8534240/pexels-photo-8534240.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       name: "Tablette 10.1\" 64GB Wi-Fi",
@@ -95,6 +124,7 @@ async function main() {
       description: "Grand écran HD, léger et portable, parfaite pour lire et naviguer.",
       specs: { "Stockage": "64 Go", "Écran": "10.1 pouces" },
       review: null,
+      image: "https://images.pexels.com/photos/6373051/pexels-photo-6373051.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       name: "Manette gaming filaire",
@@ -105,6 +135,7 @@ async function main() {
       description: "Compatible PC, précise et confortable pour de longues sessions.",
       specs: { "Connexion": "USB filaire" },
       review: { rating: 3, comment: "Correcte mais le câble est un peu court." },
+      image: "https://images.pexels.com/photos/4522994/pexels-photo-4522994.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
     {
       name: "Caméra de sécurité Wi-Fi",
@@ -115,6 +146,7 @@ async function main() {
       description: "Vision nocturne, détection de mouvement, application mobile.",
       specs: { "Résolution": "1080p", "Vision nocturne": "Oui" },
       review: null,
+      image: "https://images.pexels.com/photos/4740157/pexels-photo-4740157.jpeg?auto=compress&cs=tinysrgb&w=800",
     },
   ];
 
@@ -136,7 +168,7 @@ async function main() {
         priceHTG: p.priceHTG,
         oldPriceHTG: p.oldPriceHTG,
         stock: p.stock,
-        images: [],
+        images: [p.image],
         status: "ACTIF",
       },
     });
