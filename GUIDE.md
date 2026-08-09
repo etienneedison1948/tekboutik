@@ -1,6 +1,23 @@
 # Guide — TekBoutik
 
-## Démarrer le site
+## Le site en ligne (production)
+
+TekBoutik est en ligne : **https://tekboutik-ms8g-il2ri30wv-tekboutik.vercel.app**
+
+- Code source : https://github.com/etienneedison1948/tekboutik
+- Hébergement : Vercel (redéploie automatiquement à chaque `git push` sur `main`)
+- Base de données : Neon (PostgreSQL géré, séparée de la base locale de développement)
+- Compte admin du site en ligne : `admin@tekboutik.local` / `pj9nh0gO-zI3`
+  (différent du mot de passe admin local ci-dessous)
+- Le catalogue démarre vide volontairement — les vrais vendeurs ajoutent leurs
+  propres produits via `/devenir-vendeur` puis `/vendeur/produits`
+
+⚠️ Rappel : les photos uploadées par les vendeurs sur le site en ligne sont
+stockées sur le disque de Vercel, qui est effacé à chaque redéploiement. Avant
+que de vrais vendeurs uploadent de vraies photos, il faut brancher un
+stockage externe (voir section "Déploiement en ligne" plus bas).
+
+## Démarrer le site en local (développement)
 
 La base de données doit tourner avant le site :
 
