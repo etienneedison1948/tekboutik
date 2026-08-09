@@ -1,0 +1,156 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Identité TekBoutik */
+  --background: #f4f5f1;
+  --foreground: #12172b;
+  --card: #ffffff;
+  --card-foreground: #12172b;
+  --popover: #ffffff;
+  --popover-foreground: #12172b;
+  /* Teal légèrement assombri par rapport à la maquette d'origine (#00A691)
+     pour atteindre un contraste WCAG AA (4.5:1) en texte comme en fond de
+     bouton — la version plus claire ne passait qu'à ~3:1. */
+  --primary: #007567;
+  --primary-foreground: #f4f5f1;
+  --secondary: #eceee8;
+  --secondary-foreground: #12172b;
+  --muted: #eceee8;
+  --muted-foreground: #12172b99;
+  --accent: #e4f5f2;
+  --accent-foreground: #006154;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #12172b1f;
+  --input: #12172b26;
+  --ring: #007567;
+  --radius: 0.4rem;
+
+  /* Couleur signal (promos, badges, alertes non critiques) */
+  --color-signal: #ff8a1e;
+
+  --chart-1: #007567;
+  --chart-2: #ff8a1e;
+  --chart-3: #12172b;
+  --chart-4: #6b7280;
+  --chart-5: #9ca3af;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #12172b;
+  --sidebar-primary: #007567;
+  --sidebar-primary-foreground: #f4f5f1;
+  --sidebar-accent: #e4f5f2;
+  --sidebar-accent-foreground: #006154;
+  --sidebar-border: #12172b1f;
+  --sidebar-ring: #007567;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-signal: var(--color-signal);
+
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-heading);
+  --font-mono: var(--font-mono);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+h1,
+h2,
+h3,
+h4,
+.font-heading {
+  font-family: var(--font-heading), system-ui, sans-serif;
+}
+
+.font-price,
+.font-ref {
+  font-family: var(--font-mono), monospace;
+}
+
+.dark {
+  --background: #0c0f1c;
+  --foreground: #f4f5f1;
+  --card: #12172b;
+  --card-foreground: #f4f5f1;
+  --popover: #12172b;
+  --popover-foreground: #f4f5f1;
+  --primary: #00c4ac;
+  --primary-foreground: #0c0f1c;
+  --secondary: #1b2138;
+  --secondary-foreground: #f4f5f1;
+  --muted: #1b2138;
+  --muted-foreground: #f4f5f199;
+  --accent: #1b2138;
+  --accent-foreground: #4de6cf;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: #f4f5f11f;
+  --input: #f4f5f126;
+  --ring: #00c4ac;
+  --color-signal: #ffa64d;
+  --chart-1: #00c4ac;
+  --chart-2: #ffa64d;
+  --chart-3: #f4f5f1;
+  --chart-4: #9ca3af;
+  --chart-5: #6b7280;
+  --sidebar: #12172b;
+  --sidebar-foreground: #f4f5f1;
+  --sidebar-primary: #00c4ac;
+  --sidebar-primary-foreground: #0c0f1c;
+  --sidebar-accent: #1b2138;
+  --sidebar-accent-foreground: #4de6cf;
+  --sidebar-border: #f4f5f11f;
+  --sidebar-ring: #00c4ac;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}

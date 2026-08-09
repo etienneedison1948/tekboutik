@@ -1,0 +1,256 @@
+// Schéma de la base de données TekBoutik.
+// Après toute modification : npx prisma migrate dev --name <description>
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Enums ----------
+
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+enum SellerStatus {
+  EN_ATTENTE
+  APPROUVE
+  SUSPENDU
+}
+
+enum ProductStatus {
+  ACTIF
+  INACTIF
+  EN_RUPTURE
+}
+
+enum OrderStatus {
+  EN_ATTENTE_PAIEMENT
+  PAYE
+  EN_PREPARATION
+  EXPEDIE
+  LIVRE
+  ANNULE
+}
+
+enum OrderItemStatus {
+  EN_PREPARATION
+  EXPEDIE
+  LIVRE
+  ANNULE
+}
+
+enum PaymentMethod {
+  MONCASH
+  NATCASH
+}
+
+enum PaymentStatus {
+  EN_ATTENTE
+  CONFIRME
+  REJETE
+}
+
+enum PayoutStatus {
+  EN_ATTENTE
+  TRAITE
+}
+
+// ---------- Modèles ----------
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  phone        String?
+  role         Role     @default(BUYER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sellerProfile      SellerProfile?
+  orders             Order[]
+  reviews            Review[]
+  addresses          Address[]
+  paymentsConfirmed  Payment[]      @relation("PaymentConfirmedBy")
+
+  @@index([role])
+}
+
+model Address {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label     String // ex: "Maison", "Bureau"
+  fullName  String
+  street    String
+  city      String
+  phone     String
+  isDefault Boolean @default(false)
+
+  @@index([userId])
+}
+
+model SellerProfile {
+  id              String       @id @default(cuid())
+  userId          String       @unique
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shopName        String
+  slug            String       @unique
+  description     String?
+  logoUrl         String?
+  status          SellerStatus @default(EN_ATTENTE)
+  moncashNumber   String?
+  natcashNumber   String?
+  commissionRate  Float? // remplace le taux global si défini (pourcentage, ex: 8.5)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  products   Product[]
+  orderItems OrderItem[]
+  payouts    Payout[]
+
+  @@index([status])
+}
+
+model Category {
+  id       String     @id @default(cuid())
+  name     String
+  slug     String     @unique
+  parentId String?
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+  products Product[]
+
+  @@index([parentId])
+}
+
+model Product {
+  id          String        @id @default(cuid())
+  sellerId    String
+  seller      SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  categoryId  String
+  category    Category      @relation(fields: [categoryId], references: [id])
+  name        String
+  slug        String        @unique
+  description String
+  specs       Json?
+  priceHTG    Int
+  oldPriceHTG Int?
+  priceUSD    Float?
+  stock       Int           @default(0)
+  images      String[]
+  status      ProductStatus @default(ACTIF)
+  avgRating   Float         @default(0)
+  reviewCount Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  variants   ProductVariant[]
+  reviews    Review[]
+  orderItems OrderItem[]
+
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([status])
+}
+
+model ProductVariant {
+  id         String  @id @default(cuid())
+  productId  String
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name       String // ex: "128GB - Noir"
+  priceDelta Int     @default(0)
+  stock      Int     @default(0)
+  sku        String?
+
+  @@index([productId])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  buyerId         String
+  buyer           User        @relation(fields: [buyerId], references: [id])
+  status          OrderStatus @default(EN_ATTENTE_PAIEMENT)
+  shippingAddress Json
+  total           Int
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  items   OrderItem[]
+  payment Payment?
+
+  @@index([buyerId])
+  @@index([status])
+}
+
+model OrderItem {
+  id              String          @id @default(cuid())
+  orderId         String
+  order           Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product         @relation(fields: [productId], references: [id])
+  sellerId        String
+  seller          SellerProfile   @relation(fields: [sellerId], references: [id])
+  variantLabel    String?
+  quantity        Int
+  unitPrice       Int
+  status          OrderItemStatus @default(EN_PREPARATION)
+
+  @@index([orderId])
+  @@index([sellerId])
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  orderId         String        @unique
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method          PaymentMethod
+  transactionRef  String?
+  status          PaymentStatus @default(EN_ATTENTE)
+  confirmedById   String?
+  confirmedBy     User?         @relation("PaymentConfirmedBy", fields: [confirmedById], references: [id])
+  confirmedAt     DateTime?
+  createdAt       DateTime      @default(now())
+
+  @@index([status])
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  buyerId     String
+  buyer       User     @relation(fields: [buyerId], references: [id])
+  rating      Int
+  comment     String?
+  sellerReply String?
+  createdAt   DateTime @default(now())
+
+  @@unique([productId, buyerId])
+  @@index([productId])
+}
+
+model Payout {
+  id        String       @id @default(cuid())
+  sellerId  String
+  seller    SellerProfile @relation(fields: [sellerId], references: [id])
+  amount    Int
+  status    PayoutStatus @default(EN_ATTENTE)
+  createdAt DateTime     @default(now())
+
+  @@index([sellerId])
+}
+
+model PlatformSettings {
+  id                    Int     @id @default(1)
+  commissionRatePercent Float   @default(10)
+  moncashNumber         String?
+  natcashNumber         String?
+}
