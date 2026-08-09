@@ -3,6 +3,11 @@ import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/db";
 import { ProductCard } from "@/components/product/product-card";
 
+// Régénère la page toutes les 60s : sans ça, Next.js la fige au contenu du
+// build (aucun produit) et les nouveaux produits/vendeurs n'apparaîtraient
+// jamais sans redéploiement complet.
+export const revalidate = 60;
+
 const productSelect = {
   id: true,
   name: true,
